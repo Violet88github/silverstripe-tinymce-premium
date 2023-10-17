@@ -54,7 +54,7 @@ class TinyMCEPremiumHandler
     /**
      * @var TinyMCEPremiumHandler The global handler
      */
-    private TinyMCEPremiumHandler $instance;
+    private static $instance;
 
     public function __construct()
     {
