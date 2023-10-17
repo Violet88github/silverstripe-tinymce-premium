@@ -33,7 +33,7 @@ class TinyMCEPremiumHandlerController extends Controller
      */
     public function index()
     {
-        $handler = TinyMCEPremiumHandler::get();
+        $handler = TinyMCEPremiumHandler::create();
         $js = <<<JS
         var options = [];
         function initialiseTinyMCEPremium() {

@@ -76,7 +76,7 @@ Enabling premium plugins is as easy as enabling any other plugin. The following 
 $editorConfig = HTMLEditorConfig::get('cms');
 
 if ($editorConfig instanceof TinyMCEConfig) {
-    $handler = TinyMCEPremiumHandler::get();
+    $handler = TinyMCEPremiumHandler::create();
 
     $editorConfig->enablePlugins([
         'tinymcespellchecker' => $handler->getPluginUrl('tinymcespellchecker'),
@@ -94,7 +94,7 @@ Most of the premium plugins allow you to set callbacks and other JavaScript conf
 $editorConfig = HTMLEditorConfig::get('cms');
 
 if ($editorConfig instanceof TinyMCEConfig) {
-    $handler = TinyMCEPremiumHandler::get();
+    $handler = TinyMCEPremiumHandler::create();
 
     $editorConfig->enablePlugins([
         'mentions' => $handler->getPluginUrl('mentions')

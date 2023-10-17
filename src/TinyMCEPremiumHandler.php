@@ -51,24 +51,26 @@ class TinyMCEPremiumHandler
      */
     private array $jsOptions = [];
 
+    /**
+     * @var TinyMCEPremiumHandler The global handler
+     */
+    private TinyMCEPremiumHandler $instance;
+
     public function __construct()
     {
         $this->tinymce_resolved_version = $this->resolve_tinymce_version();
     }
 
+    /**
+     * Create a new instance of the handler, or return the global handler if it already exists
+     * @return TinyMCEPremiumHandler The handler
+     */
     public static function create()
     {
-        return new self();
-    }
-
-    /**
-     * Define this instance as the global handler
-     * @return void
-     */
-    public function define()
-    {
-        if (!defined('V88_TINYMCE_PREMIUM_HANDLER'))
-            define('V88_TINYMCE_PREMIUM_HANDLER', $this);
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 
     /**
@@ -76,27 +78,10 @@ class TinyMCEPremiumHandler
      * @return void
      * @throws Exception If the global handler is not defined
      */
-    public function require()
+    public static function require()
     {
-        if (!defined('V88_TINYMCE_PREMIUM_HANDLER'))
-            throw new \Exception('TinyMCE Premium Handler not defined');
-
-        $handler = V88_TINYMCE_PREMIUM_HANDLER;
-
+        $handler = self::create();
         Requirements::javascript($handler->getRequiredUrl());
-    }
-
-    /**
-     * Get the global handler
-     * @return Violet88\TinyMCE\TinyMCEPremiumHandler The global handler
-     * @throws Exception If the global handler is not defined
-     */
-    public static function get()
-    {
-        if (!defined('V88_TINYMCE_PREMIUM_HANDLER'))
-            throw new \Exception('TinyMCE Premium Handler not defined');
-
-        return V88_TINYMCE_PREMIUM_HANDLER;
     }
 
     /**

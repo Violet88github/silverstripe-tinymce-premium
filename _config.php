@@ -6,9 +6,5 @@ use Violet88\TinyMCE\TinyMCEPremiumHandler;
 
 $editorConfig = HTMLEditorConfig::get('cms');
 
-if ($editorConfig instanceof TinyMCEConfig) {
-    $handler = TinyMCEPremiumHandler::create();
-
-    $handler->define();
-    $handler->require();
-}
+if ($editorConfig instanceof TinyMCEConfig)
+    TinyMCEPremiumHandler::require();
