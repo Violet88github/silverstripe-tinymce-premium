@@ -1,0 +1,10 @@
+---
+name: tinymce-premium-config
+---
+Violet88\TinyMCE\TinyMCEPremiumHandler:
+  tinymce_version: 4
+  tinymce_cdn: "https://cdn.tiny.cloud/1"
+
+SilverStripe\Control\Director:
+  rules:
+    "_violet88/tinymce-premium.js": 'Violet88\TinyMCE\TinyMCEPremiumHandlerController'
