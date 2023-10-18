@@ -34,21 +34,38 @@ class TinyMCEPremiumHandlerController extends Controller
     public function index()
     {
         $handler = TinyMCEPremiumHandler::create();
+        $params = $this->getRequest()->getVars();
+
+        $jsOptions = $handler->getJsOptions();
+
+        $jsOptionsString = "{";
+        foreach ($jsOptions as $key => $value)
+            $jsOptionsString .= "'$key': $value,";
+        $jsOptionsString = substr($jsOptionsString, 0, -1);
+        $jsOptionsString .= "}";
+
         $js = <<<JS
-        var options = [];
-        function initialiseTinyMCEPremium() {
-            if (typeof jQuery === 'undefined')
+        function initialiseTinyMCEPremium(options) {
+            if (typeof jQuery === 'undefined') {
                 console.error('jQuery is not defined, cannot load TinyMCE Premium');
+                return;
+            }
 
-            if (typeof tinymce === 'undefined')
+            if (typeof tinymce === 'undefined') {
                 console.error('TinyMCE is not defined, cannot load TinyMCE Premium');
+                return;
+            }
 
-            jQuery.entwine('ss', function($) {
-                $('textarea.htmleditor[data-editor="tinyMCE"]').entwine({
+            console.log('TinyMCE Premium: Initialising TinyMCE Premium');
+
+            jQuery.entwine('ss', function(jQuery) {
+                jQuery('textarea.htmleditor[data-editor="tinyMCE"]').entwine({
                     onmatch: function() {
                         this._super();
 
                         var editor = tinymce.get(this.attr('id'));
+
+                        console.log('TinyMCE Premium: Initialising editor ' + this.attr('id'));
 
                         if (editor === null) {
                             console.warn('TinyMCE Premium: Could not find editor ' + this.attr('id'));
@@ -60,10 +77,14 @@ class TinyMCEPremiumHandlerController extends Controller
                             return;
                         }
 
-                        var settings = editor.settings;
-                        options.forEach(function(option) {
-                            settings[option.key] = option.value;
-                        });
+                        try {
+                            var settings = editor.settings;
+                            settings = jQuery.extend(settings, options);
+                        } catch (e) {
+                            console.error('TinyMCE Premium: Could not parse options for editor ' + this.attr('id'));
+                            console.error(e);
+                            return;
+                        }
 
                         try {
                             editor.destroy();
@@ -75,26 +96,21 @@ class TinyMCEPremiumHandlerController extends Controller
                     }
                 });
             });
-
         }
 
-        window.addEventListener('load', initialiseTinyMCEPremium);
-
-
+        window.addEventListener('load', initialiseTinyMCEPremium.bind(null, $jsOptionsString));
         JS;
 
-        foreach ($handler->getJsOptions() as $key => $value)
-            $js .= "options['$key'] = $value;";
-
-        try {
-            $js = JSMin::minify($js);
-        } catch (UnterminatedStringException $e) {
-            error_log('Unterminated string in TinyMCEPremiumHandlerController::index()');
-            throw $e;
-        } catch (UnterminatedRegExpException $e) {
-            error_log('Unterminated regular expression in TinyMCEPremiumHandlerController::index()');
-            throw $e;
-        }
+        if (!isset($params['debug']) || !$params['debug'] || !Director::isDev())
+            try {
+                $js = JSMin::minify($js);
+            } catch (UnterminatedStringException $e) {
+                error_log('Unterminated string in TinyMCEPremiumHandlerController::index()');
+                throw $e;
+            } catch (UnterminatedRegExpException $e) {
+                error_log('Unterminated regular expression in TinyMCEPremiumHandlerController::index()');
+                throw $e;
+            }
 
         $response = new HTTPResponse($js, 200);
         $response->addHeader('Content-Type', 'application/javascript');
