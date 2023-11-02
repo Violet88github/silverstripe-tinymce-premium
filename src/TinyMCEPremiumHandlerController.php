@@ -38,36 +38,40 @@ class TinyMCEPremiumHandlerController extends Controller
 
         $jsOptions = $handler->getJsOptions();
 
-        $jsOptionsString = "{";
-        foreach ($jsOptions as $key => $value)
+        $jsOptionsString = '';
+        foreach ($jsOptions as $key => $value) {
+            // Validate the JS using JSMin, if it's invalid, skip it and log an error
+            try {
+                JSMin::minify($value);
+            } catch (UnterminatedStringException $e) {
+                error_log('TinyMCEPremium: The option ' . $key . ' contains an unterminated string');
+                throw $e;
+            } catch (UnterminatedRegExpException $e) {
+                error_log('TinyMCEPremium: The option ' . $key . ' contains an unterminated regular expression');
+                throw $e;
+            } catch (Exception $e) {
+                error_log('TinyMCEPremium: The option ' . $key . ' is not valid javascript');
+                error_log($value);
+                error_log($e->getMessage());
+                continue;
+            }
+
             $jsOptionsString .= "'$key': $value,";
-        $jsOptionsString = substr($jsOptionsString, 0, -1);
-        $jsOptionsString .= "}";
+        }
+        $jsOptionsString = "{" . substr($jsOptionsString, 0, -1) . "}";
 
         $js = <<<JS
-        function initialiseTinyMCEPremium(options) {
-            if (typeof jQuery === 'undefined') {
-                console.error('jQuery is not defined, cannot load TinyMCE Premium');
-                return;
-            }
+        const options = $jsOptionsString;
 
-            if (typeof tinymce === 'undefined') {
-                console.error('TinyMCE is not defined, cannot load TinyMCE Premium');
-                return;
-            }
-
-            console.log('TinyMCE Premium: Initialising TinyMCE Premium');
-
-            jQuery.entwine('ss', function(jQuery) {
-                jQuery('textarea.htmleditor[data-editor="tinyMCE"]').entwine({
+        (function($) {
+            $.entwine('ss', function($) {
+                $('textarea.htmleditor[data-editor="tinyMCE"]').entwine({
                     onmatch: function() {
-                        this._super();
-
                         var editor = tinymce.get(this.attr('id'));
 
-                        console.log('TinyMCE Premium: Initialising editor ' + this.attr('id'));
+                        console.debug('TinyMCE Premium: Initialising editor ' + this.attr('id'));
 
-                        if (editor === null) {
+                        if (!editor) {
                             console.warn('TinyMCE Premium: Could not find editor ' + this.attr('id'));
                             return;
                         }
@@ -78,27 +82,18 @@ class TinyMCEPremiumHandlerController extends Controller
                         }
 
                         try {
-                            var settings = editor.settings;
-                            settings = jQuery.extend(settings, options);
+                            editor.settings = $.extend(editor.settings, options);
                         } catch (e) {
-                            console.error('TinyMCE Premium: Could not parse options for editor ' + this.attr('id'));
+                            console.error('TinyMCE Premium: Could not extend settings for editor ' + this.attr('id'));
                             console.error(e);
                             return;
                         }
 
-                        try {
-                            editor.destroy();
-                            tinymce.init(settings);
-                        } catch (e) {
-                            console.error('TinyMCE Premium: Could not re-initialise editor ' + this.attr('id'));
-                            console.error(e);
-                        }
+                        this._super();
                     }
                 });
             });
-        }
-
-        window.addEventListener('load', initialiseTinyMCEPremium.bind(null, $jsOptionsString));
+        })(jQuery);
         JS;
 
         if (!isset($params['debug']) || !$params['debug'] || !Director::isDev())

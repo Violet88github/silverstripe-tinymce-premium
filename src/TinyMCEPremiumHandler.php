@@ -81,7 +81,9 @@ class TinyMCEPremiumHandler
     public static function require()
     {
         $handler = self::create();
-        Requirements::javascript($handler->getRequiredUrl());
+        Requirements::javascript($handler->getRequiredUrl(), [
+            'defer' => true
+        ]);
     }
 
     /**
