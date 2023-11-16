@@ -279,7 +279,7 @@ class TinyMCEPremiumHandler
      */
     private function get_config(string $key)
     {
-        $value = Environment::getEnv(self::$environment_prefix . $key);
+        $value = Environment::getEnv(self::$environment_prefix . strtoupper($key));
         if ($value !== null && !empty($value))
             return $value;
 
