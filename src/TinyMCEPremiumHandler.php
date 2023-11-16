@@ -99,7 +99,7 @@ class TinyMCEPremiumHandler
      */
     public function getApiKey()
     {
-        return trim(self::config()->get('api_key'));
+        return trim(self::get_config('api_key'), '/');
     }
 
     /**
@@ -109,7 +109,7 @@ class TinyMCEPremiumHandler
      */
     public function getTinyMCEVersion()
     {
-        return trim(self::config()->get('tinymce_version'), '/');
+        return trim(self::get_config('tinymce_version'), '/');
     }
 
     /**
@@ -133,7 +133,7 @@ class TinyMCEPremiumHandler
      */
     public function getTinyMCEDN()
     {
-        return trim(self::config()->get('tinymce_cdn'), '/');
+        return trim(self::get_config('tinymce_cdn'), '/');
     }
 
     /**
