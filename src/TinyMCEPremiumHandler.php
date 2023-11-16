@@ -6,6 +6,7 @@ use BadMethodCallException;
 use Exception;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Environment;
 use SilverStripe\View\Requirements;
 
 /**
@@ -39,6 +40,11 @@ class TinyMCEPremiumHandler
      * @var string The tinymce cdn to use
      */
     private static string $tinymce_cdn = 'https://cdn.tiny.cloud/1';
+
+    /**
+     * @var string The environment prefix to use when fetching config values from the environment
+     */
+    private static string $environment_prefix = 'TINYMCE_PREMIUM_';
 
     /**
      * @var null|string The resolved tinymce version, set after fetching the version from the cdn
@@ -93,7 +99,7 @@ class TinyMCEPremiumHandler
      */
     public function getApiKey()
     {
-        return trim(self::config()->get('api_key'));
+        return trim(self::get_config('api_key'), '/');
     }
 
     /**
@@ -103,7 +109,7 @@ class TinyMCEPremiumHandler
      */
     public function getTinyMCEVersion()
     {
-        return trim(self::config()->get('tinymce_version'), '/');
+        return trim(self::get_config('tinymce_version'), '/');
     }
 
     /**
@@ -127,7 +133,7 @@ class TinyMCEPremiumHandler
      */
     public function getTinyMCEDN()
     {
-        return trim(self::config()->get('tinymce_cdn'), '/');
+        return trim(self::get_config('tinymce_cdn'), '/');
     }
 
     /**
@@ -263,5 +269,24 @@ class TinyMCEPremiumHandler
             return $matches[1];
 
         throw new \Exception('TinyMCE version not found');
+    }
+
+    /**
+     * Get a config value from the environment or the config
+     * @param string $key The key of the config value
+     * @return mixed The config value or null if it doesn't exist
+     * @throws BadMethodCallException If the key is not a string
+     */
+    private function get_config(string $key)
+    {
+        $value = Environment::getEnv(self::$environment_prefix . $key);
+        if ($value !== null && !empty($value))
+            return $value;
+
+        $value = self::config()->get($key);
+        if ($value !== null && !empty($value))
+            return $value;
+
+        return null;
     }
 }

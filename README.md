@@ -46,6 +46,19 @@ Violet88\TinyMCE\TinyMCEPremiumHandler:
     tinymce_cdn: "https://cdn.tiny.cloud/1" # TinyMCE CDN
 ```
 
+#### Environment Variables
+
+Additionally, you can configure all of the above using environment variables. This is useful if you want to use the same configuration across multiple environments.
+The environment variables are prefixed with `TINYMCE_PREMIUM_` and are all uppercase. The `api_key` environment variable is required.
+
+```bash
+TINYMCE_PREMIUM_API_KEY="your-api-key"
+TINYMCE_PREMIUM_TINYMCE_VERSION="4"
+TINYMCE_PREMIUM_TINYMCE_CDN="https://cdn.tiny.cloud/1"
+```
+
+> Environment variables are always prioritized over the configuration file.
+
 ## Usage
 
 The module can be used in the `_config.php` file to enable TinyMCE premium plugins and set JavaScript config values.
